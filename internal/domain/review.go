@@ -25,7 +25,10 @@ func (r *Review) ToResponse(user *User) ReviewResponse {
 		Content:   r.Content,
 		CreatedAt: r.CreatedAt,
 		UpdatedAt: r.UpdatedAt,
-		User:      user.ToSummary(),
+	}
+
+	if user != nil {
+		review.User = user.ToSummary()
 	}
 
 	_ = r.Title.Scan(&review.Title)

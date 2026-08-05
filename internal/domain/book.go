@@ -13,7 +13,7 @@ type Book struct {
 	CreatedAt     time.Time       `json:"created_at" db:"created_at"`
 	UpdatedAt     time.Time       `json:"updated_at" db:"updated_at"`
 	Description   sql.NullString  `json:"description" db:"description"`
-	ISBN          sql.NullInt32   `json:"isbn" db:"isbn"`
+	ISBN          sql.NullString  `json:"isbn" db:"isbn"`
 	PublishedYear sql.NullInt32   `json:"published_year" db:"published_year"`
 	AverageRating sql.NullFloat64 `json:"-" db:"average_rating"`
 	ReviewsCount  int             `json:"reviews_count" db:"reviews_count"`
@@ -44,9 +44,9 @@ type BookResponse struct {
 	CreatedAt     time.Time    `json:"created_at"`
 	UpdatedAt     time.Time    `json:"updated_at"`
 	Description   *string      `json:"description"`
-	ISBN          *int         `json:"isbn"`
+	ISBN          *string      `json:"isbn"`
 	PublishedYear *int         `json:"published_year"`
-	AverageRating *float32     `json:"-"`
+	AverageRating *float64     `json:"-"`
 	ReviewsCount  int          `json:"reviews_count"`
 	Creator       *UserSummary `json:"creator,omitempty"`
 }
