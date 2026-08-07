@@ -23,13 +23,13 @@ func New(services *service.Service, jwtSecret string) *Handler {
 	}
 }
 
-func Health(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`{"status":"ok", "version":"1.0.0", "timestamp":%d}`, time.Now().Unix())))
 }
 
-func Ready(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Ready(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(
@@ -55,9 +55,12 @@ func writeError(w http.ResponseWriter, r *http.Request, status int, message stri
 	w.WriteHeader(status)
 
 	resp := domain.ErrorResponse{
-		Code:      status,
-		Message:   message,
-		RequestID: r.Context().Value(requestIDKey).(string),
+		Code:    status,
+		Message: message,
+	}
+
+	if reqID, ok := r.Context().Value(requestIDKey).(string); ok {
+		resp.RequestID = reqID
 	}
 
 	bytes, err := json.Marshal(resp)

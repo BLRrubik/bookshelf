@@ -1,11 +1,18 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/bookshelf/monolith/internal/config"
 	"github.com/bookshelf/monolith/internal/handler"
+	"github.com/bookshelf/monolith/internal/repository"
+	"github.com/bookshelf/monolith/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
@@ -21,13 +28,70 @@ func main() {
 	}
 	defer db.Close()
 
+	repos := repository.New(db)
+	services := service.New(repos, cfg.JWTSecret)
+	handlers := handler.New(services, cfg.JWTSecret)
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 
-	r.Get("/health", handler.Health)
+	r.Get("/health", handlers.Health)
+	r.Get("/ready", handlers.Ready)
 
-	http.ListenAndServe(":"+cfg.Port, r)
+	r.Route("/api/v1", func(r chi.Router) {
+		// Публичные роуты — без авторизации
+		r.Post("/auth/register", handlers.Register)
+		r.Post("/auth/login", handlers.Login)
+
+		r.Get("/books", handlers.ListBooks)
+		r.Get("/books/{bookId}", handlers.GetBook)
+		r.Get("/books/{bookId}/reviews", handlers.ListBooks)
+
+		r.Get("/reviews/{reviewId} ", handlers.GetReview)
+
+		// Защищённые роуты — с AuthMiddleware
+		r.Group(func(r chi.Router) {
+			r.Use(handlers.AuthMiddleware)
+
+			r.Get("/users/me", handlers.GetCurrentUser)
+			r.Put("/users/me", handlers.UpdateCurrentUser)
+
+			r.Post("/books", handlers.CreateBook)
+			r.Put("/books/{bookId}", handlers.UpdateBook)
+			r.Delete("/books/{bookId}", handlers.DeleteBook)
+			r.Get("/books/{bookId}/reviews", handlers.CreateReview)
+
+			r.Put("/reviews/{reviewId} ", handlers.UpdateReview)
+			r.Delete("/reviews/{reviewId} ", handlers.DeleteReview)
+		})
+	})
+
+	server := &http.Server{
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		Addr:         ":" + cfg.Port,
+		Handler:      r,
+	}
+
+	go func() {
+		if err = server.ListenAndServe(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	termChan := make(chan os.Signal, 1)
+	signal.Notify(termChan, syscall.SIGINT, syscall.SIGTERM)
+
+	<-termChan
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err = server.Shutdown(ctx); err != nil {
+		log.Fatal(err)
+	}
 }

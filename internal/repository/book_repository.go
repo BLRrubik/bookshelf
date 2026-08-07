@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/bookshelf/monolith/internal/domain"
 	"github.com/google/uuid"
@@ -23,7 +24,7 @@ SELECT
 	b.description, b.isbn, b.published_year,
 	b.created_by, b.created_at, b.updated_at,
 	AVG(r.rating) as average_rating,
-	COUNT(r.rating) as rating_count
+	COUNT(r.id) as reviews_count
 FROM books AS b
 LEFT JOIN reviews AS r ON b.id = r.book_id
 WHERE b.id = $1
@@ -35,13 +36,13 @@ SELECT
 	b.description, b.isbn, b.published_year,
 	b.created_by, b.created_at, b.updated_at,
 	AVG(r.rating) as average_rating,
-	COUNT(r.rating) as rating_count
+	COUNT(r.id) as reviews_count
 FROM books AS b
 LEFT JOIN reviews AS r ON b.id = r.book_id
 WHERE b.title ILIKE $1
 GROUP BY b.id
-ORDER BY $2 $3
-LIMIT $4 OFFSET $5
+ORDER BY %s %s
+LIMIT $2 OFFSET $3
 `
 	updateBookQuery = `
 UPDATE books
@@ -108,10 +109,8 @@ func (br *BookRepository) List(ctx context.Context, filter domain.BookFilter) ([
 	err := br.db.SelectContext(
 		ctx,
 		&books,
-		listBooksQuery,
-		filter.Search,
-		filter.Order,
-		filter.Sort,
+		fmt.Sprintf(listBooksQuery, filter.Sort, filter.Order),
+		"%"+filter.Search+"%",
 		filter.Limit,
 		offset,
 	)
@@ -119,7 +118,7 @@ func (br *BookRepository) List(ctx context.Context, filter domain.BookFilter) ([
 		return nil, 0, err
 	}
 
-	err = br.db.SelectContext(ctx, &count, "SELECT COUNT(*) FROM books")
+	err = br.db.GetContext(ctx, &count, "SELECT COUNT(*) FROM books")
 	if err != nil {
 		return nil, 0, err
 	}

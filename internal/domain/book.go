@@ -104,6 +104,10 @@ func (b *BookFilter) Normalize() {
 		b.Sort = "title"
 	}
 
+	if len(b.Search) == 0 {
+		b.Search = "*"
+	}
+
 	if b.Order != "asc" && b.Order != "desc" {
 		b.Order = "desc"
 	}

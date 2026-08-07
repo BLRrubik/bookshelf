@@ -112,7 +112,7 @@ func (rr *ReviewRepository) ListByBookID(
 		return nil, 0, err
 	}
 
-	err = rr.db.SelectContext(ctx, &count, "SELECT COUNT(*) FROM reviews WHERE book_id = $1", bookID)
+	err = rr.db.GetContext(ctx, &count, "SELECT COUNT(*) FROM reviews WHERE book_id = $1", bookID)
 	if err != nil {
 		return nil, 0, err
 	}
