@@ -16,11 +16,15 @@ var (
 )
 
 type Repository struct {
-	UserRepository *UserRepository
+	UserRepository   *UserRepository
+	BookRepository   *BookRepository
+	ReviewRepository *ReviewRepository
 }
 
 func New(db *sqlx.DB) *Repository {
 	return &Repository{
-		UserRepository: NewUserRepository(db),
+		UserRepository:   NewUserRepository(db),
+		BookRepository:   NewBookRepository(db),
+		ReviewRepository: NewReviewRepository(db),
 	}
 }
