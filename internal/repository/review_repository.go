@@ -145,13 +145,16 @@ func (rr *ReviewRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (rr *ReviewRepository) UserHasReviewedBook(ctx context.Context, userID string, bookID string) bool {
-	_, err := rr.db.ExecContext(ctx, hasUserBookReviewQuery, userID, bookID)
+func (rr *ReviewRepository) UserHasReviewedBook(ctx context.Context, userID string, bookID string) (bool, error) {
+	var exists bool
+	err := rr.db.GetContext(ctx, &exists, hasUserBookReviewQuery, userID, bookID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return false
+			return false, nil
 		}
+
+		return false, err
 	}
 
-	return true
+	return exists, nil
 }

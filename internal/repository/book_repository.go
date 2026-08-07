@@ -19,19 +19,27 @@ ON CONFLICT DO NOTHING;
 `
 	getBookByIDQuery = `
 SELECT 
-	id, title, author, 
-	description, isbn, published_year,
-	created_by, created_at, updated_at 
-FROM books
-WHERE id = $1
+	b.id, b.title, b.author, 
+	b.description, b.isbn, b.published_year,
+	b.created_by, b.created_at, b.updated_at,
+	AVG(r.rating) as average_rating,
+	COUNT(r.rating) as rating_count
+FROM books AS b
+LEFT JOIN reviews AS r ON b.id = r.book_id
+WHERE b.id = $1
+GROUP BY b.id
 `
 	listBooksQuery = `
 SELECT 
-	id, title, author, 
-	description, isbn, published_year,
-	created_by, created_at, updated_at
-FROM books
-WHERE title ILIKE $1
+	b.id, b.title, b.author, 
+	b.description, b.isbn, b.published_year,
+	b.created_by, b.created_at, b.updated_at,
+	AVG(r.rating) as average_rating,
+	COUNT(r.rating) as rating_count
+FROM books AS b
+LEFT JOIN reviews AS r ON b.id = r.book_id
+WHERE b.title ILIKE $1
+GROUP BY b.id
 ORDER BY $2 $3
 LIMIT $4 OFFSET $5
 `
