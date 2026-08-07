@@ -38,36 +38,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 
-	r.Get("/health", handlers.Health)
-	r.Get("/ready", handlers.Ready)
-
-	r.Route("/api/v1", func(r chi.Router) {
-		// Публичные роуты — без авторизации
-		r.Post("/auth/register", handlers.Register)
-		r.Post("/auth/login", handlers.Login)
-
-		r.Get("/books", handlers.ListBooks)
-		r.Get("/books/{bookId}", handlers.GetBook)
-		r.Get("/books/{bookId}/reviews", handlers.ListBooks)
-
-		r.Get("/reviews/{reviewId} ", handlers.GetReview)
-
-		// Защищённые роуты — с AuthMiddleware
-		r.Group(func(r chi.Router) {
-			r.Use(handlers.AuthMiddleware)
-
-			r.Get("/users/me", handlers.GetCurrentUser)
-			r.Put("/users/me", handlers.UpdateCurrentUser)
-
-			r.Post("/books", handlers.CreateBook)
-			r.Put("/books/{bookId}", handlers.UpdateBook)
-			r.Delete("/books/{bookId}", handlers.DeleteBook)
-			r.Get("/books/{bookId}/reviews", handlers.CreateReview)
-
-			r.Put("/reviews/{reviewId} ", handlers.UpdateReview)
-			r.Delete("/reviews/{reviewId} ", handlers.DeleteReview)
-		})
-	})
+	registerRoutes(r, handlers)
 
 	server := &http.Server{
 		ReadTimeout:  5 * time.Second,
@@ -94,4 +65,37 @@ func main() {
 	if err = server.Shutdown(ctx); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func registerRoutes(r *chi.Mux, handlers *handler.Handler) {
+	r.Get("/health", handlers.Health)
+	r.Get("/ready", handlers.Ready)
+
+	r.Route("/api/v1", func(r chi.Router) {
+		// Публичные роуты — без авторизации
+		r.Post("/auth/register", handlers.Register)
+		r.Post("/auth/login", handlers.Login)
+
+		r.Get("/books", handlers.ListBooks)
+		r.Get("/books/{bookId}", handlers.GetBook)
+		r.Get("/books/{bookId}/reviews", handlers.ListBookReviews)
+
+		r.Get("/reviews/{reviewId} ", handlers.GetReview)
+
+		// Защищённые роуты — с AuthMiddleware
+		r.Group(func(r chi.Router) {
+			r.Use(handlers.AuthMiddleware)
+
+			r.Get("/users/me", handlers.GetCurrentUser)
+			r.Put("/users/me", handlers.UpdateCurrentUser)
+
+			r.Post("/books", handlers.CreateBook)
+			r.Put("/books/{bookId}", handlers.UpdateBook)
+			r.Delete("/books/{bookId}", handlers.DeleteBook)
+			r.Post("/books/{bookId}/reviews", handlers.CreateReview)
+
+			r.Put("/reviews/{reviewId} ", handlers.UpdateReview)
+			r.Delete("/reviews/{reviewId} ", handlers.DeleteReview)
+		})
+	})
 }
