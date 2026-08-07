@@ -52,7 +52,8 @@ func (s *BookService) Create(ctx context.Context, userID string, req domain.Crea
 	}
 
 	bookResponse := book.ToResponse()
-	bookResponse.Creator = new(creator.ToSummary())
+	userSummary := creator.ToSummary()
+	bookResponse.Creator = &userSummary
 
 	return &bookResponse, nil
 }
@@ -81,7 +82,8 @@ func (s *BookService) GetByID(ctx context.Context, id string) (*domain.BookRespo
 	}
 
 	bookResponse := book.ToResponse()
-	bookResponse.Creator = new(creator.ToSummary())
+	userSummary := creator.ToSummary()
+	bookResponse.Creator = &userSummary
 
 	return &bookResponse, nil
 }
@@ -155,7 +157,8 @@ func (s *BookService) Update(
 	}
 
 	bookResponse := book.ToResponse()
-	bookResponse.Creator = new(creator.ToSummary())
+	userSummary := creator.ToSummary()
+	bookResponse.Creator = &userSummary
 
 	return &bookResponse, nil
 }
