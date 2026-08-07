@@ -44,7 +44,6 @@ WHERE id = $6
 DELETE FROM books
 WHERE id = $1
 `
-	hasUserReview = ``
 )
 
 type BookRepository struct {
@@ -96,7 +95,18 @@ func (br *BookRepository) List(ctx context.Context, filter domain.BookFilter) ([
 	var books []domain.Book
 	var count int
 
-	err := br.db.SelectContext(ctx, &books, listBooksQuery, filter)
+	offset := (filter.Page - 1) * filter.Limit
+
+	err := br.db.SelectContext(
+		ctx,
+		&books,
+		listBooksQuery,
+		filter.Search,
+		filter.Order,
+		filter.Sort,
+		filter.Limit,
+		offset,
+	)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -118,6 +128,7 @@ func (br *BookRepository) Update(ctx context.Context, book *domain.Book) error {
 		book.Description,
 		book.ISBN,
 		book.PublishedYear,
+		book.ID,
 	)
 	if err != nil {
 		return err

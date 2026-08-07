@@ -11,6 +11,8 @@ var (
 	ErrUserAlreadyExists = errors.New("user already exists")
 
 	ErrBookNotFound = errors.New("book not found")
+
+	ErrReviewNotFound = errors.New("review not found")
 )
 
 type Repository struct {
