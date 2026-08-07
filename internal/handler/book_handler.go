@@ -107,13 +107,14 @@ func (h *Handler) DeleteBook(w http.ResponseWriter, r *http.Request) {
 	bookID := chi.URLParam(r, "bookId")
 
 	if err := h.services.BookService.Delete(r.Context(), userID, bookID); err != nil {
-		if errors.Is(err, service.ErrBookNotFound) {
+		switch {
+		case errors.Is(err, service.ErrBookNotFound):
 			writeError(w, r, http.StatusNotFound, "book not found")
-
-			return
+		case errors.Is(err, service.ErrNotBookOwner):
+			writeError(w, r, http.StatusForbidden, "not book owner")
+		default:
+			writeError(w, r, http.StatusInternalServerError, err.Error())
 		}
-
-		writeError(w, r, http.StatusInternalServerError, err.Error())
 
 		return
 	}
