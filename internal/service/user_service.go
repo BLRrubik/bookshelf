@@ -19,13 +19,13 @@ var (
 )
 
 type UserService struct {
-	userRepo  *repository.UserRepository
+	repo      *repository.UserRepository
 	jwtSecret string
 }
 
 func NewUserService(userRepo *repository.UserRepository, jwtSecret string) *UserService {
 	return &UserService{
-		userRepo:  userRepo,
+		repo:      userRepo,
 		jwtSecret: jwtSecret,
 	}
 }
@@ -46,7 +46,7 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 		PasswordHash: string(hash),
 	}
 
-	if err = s.userRepo.Create(ctx, &user); err != nil {
+	if err = s.repo.Create(ctx, &user); err != nil {
 		return nil, err
 	}
 
@@ -71,11 +71,11 @@ func (s *UserService) validateRegister(ctx context.Context, req domain.RegisterR
 		return ErrInvalidPassword
 	}
 
-	if s.userRepo.EmailExists(ctx, req.Email) {
+	if s.repo.EmailExists(ctx, req.Email) {
 		return ErrUserExists
 	}
 
-	if s.userRepo.UsernameExists(ctx, req.Username) {
+	if s.repo.UsernameExists(ctx, req.Username) {
 		return ErrUsernameExists
 	}
 
