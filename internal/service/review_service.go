@@ -41,10 +41,6 @@ func (s *ReviewService) Create(
 	bookID string,
 	req domain.CreateReviewRequest,
 ) (*domain.ReviewResponse, error) {
-	if err := s.validateCreate(req); err != nil {
-		return nil, err
-	}
-
 	book, err := s.bookRepo.GetByID(ctx, bookID)
 	if err != nil {
 		if errors.Is(err, ErrBookNotFound) {
@@ -87,18 +83,6 @@ func (s *ReviewService) Create(
 	reviewResponse := review.ToResponse(user)
 
 	return &reviewResponse, nil
-}
-
-func (s *ReviewService) validateCreate(req domain.CreateReviewRequest) error {
-	if req.Rating < 1 || req.Rating > 5 {
-		return ErrInvalidRating
-	}
-
-	if len(req.Content) < 10 {
-		return ErrReviewContentTooShort
-	}
-
-	return nil
 }
 
 func (s *ReviewService) GetByID(ctx context.Context, id string) (*domain.ReviewResponse, error) {

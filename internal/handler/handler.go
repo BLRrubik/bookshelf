@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/bookshelf/monolith/internal/domain"
@@ -88,4 +89,20 @@ func writeValidationError(w http.ResponseWriter, r *http.Request, details []doma
 	}
 
 	_, _ = w.Write(bytes)
+}
+
+func extractPageAndLimit(r *http.Request) (int, int) {
+	pageStr := r.URL.Query().Get("page")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil {
+		page = 1
+	}
+
+	limitStr := r.URL.Query().Get("limit")
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil {
+		limit = 10
+	}
+
+	return page, limit
 }

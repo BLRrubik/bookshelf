@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -52,6 +53,18 @@ type CreateReviewRequest struct {
 	Rating  int     `json:"rating"`
 	Content string  `json:"content"`
 	Title   *string `json:"title,omitempty"`
+}
+
+func (r *CreateReviewRequest) Validate() error {
+	if r.Rating < 1 || r.Rating > 5 {
+		return errors.New("rating must be between 1 and 5")
+	}
+
+	if len(r.Content) < 10 {
+		return errors.New("content must be at least 10 characters")
+	}
+
+	return nil
 }
 
 type UpdateReviewRequest struct {
