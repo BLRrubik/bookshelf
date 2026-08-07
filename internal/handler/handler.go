@@ -10,14 +10,6 @@ import (
 	"github.com/bookshelf/monolith/internal/service"
 )
 
-// Определяем собственный тип для ключей контекста
-type contextKey string
-
-const (
-	userIDKey    contextKey = "userID"
-	requestIDKey contextKey = "requestID"
-)
-
 type Handler struct {
 	services  *service.Service
 	jwtSecret string
