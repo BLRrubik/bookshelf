@@ -145,7 +145,7 @@ func (ur *UserRepository) EmailExists(ctx context.Context, email string) bool {
 	return true
 }
 
-func (ur *UserRepository) GetByIDs(ctx, ids []string) (map[string]*domain.User, error) {
+func (ur *UserRepository) GetByIDs(ctx context.Context, ids []string) (map[string]*domain.User, error) {
 	result := make(map[string]*domain.User)
 
 	return result, nil
