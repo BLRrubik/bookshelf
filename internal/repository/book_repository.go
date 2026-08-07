@@ -88,7 +88,7 @@ func (br *BookRepository) Create(ctx context.Context, book *domain.Book) error {
 
 func (br *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, error) {
 	var book domain.Book
-	err := br.db.SelectContext(ctx, &book, getBookByIDQuery, id)
+	err := br.db.GetContext(ctx, &book, getBookByIDQuery, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrBookNotFound

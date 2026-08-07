@@ -74,7 +74,7 @@ func (ur *UserRepository) Create(ctx context.Context, user *domain.User) error {
 
 func (ur *UserRepository) GetByID(ctx context.Context, id string) (*domain.User, error) {
 	var user domain.User
-	err := ur.db.SelectContext(ctx, &user, getUserByIDQuery, id)
+	err := ur.db.GetContext(ctx, &user, getUserByIDQuery, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -88,7 +88,7 @@ func (ur *UserRepository) GetByID(ctx context.Context, id string) (*domain.User,
 
 func (ur *UserRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
 	var user domain.User
-	err := ur.db.SelectContext(ctx, &user, getUserByUsernameQuery, username)
+	err := ur.db.GetContext(ctx, &user, getUserByUsernameQuery, username)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -102,7 +102,7 @@ func (ur *UserRepository) GetByUsername(ctx context.Context, username string) (*
 
 func (ur *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.User, error) {
 	var user domain.User
-	err := ur.db.SelectContext(ctx, &user, getUserByEmailQuery, email)
+	err := ur.db.GetContext(ctx, &user, getUserByEmailQuery, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrUserNotFound
@@ -124,25 +124,23 @@ func (ur *UserRepository) Update(ctx context.Context, user *domain.User) error {
 }
 
 func (ur *UserRepository) UsernameExists(ctx context.Context, username string) bool {
-	_, err := ur.db.ExecContext(ctx, existsUserByUsernameQuery, username)
+	var exists bool
+	err := ur.db.GetContext(ctx, &exists, existsUserByUsernameQuery, username)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false
-		}
+		return false
 	}
 
-	return true
+	return exists
 }
 
 func (ur *UserRepository) EmailExists(ctx context.Context, email string) bool {
-	_, err := ur.db.ExecContext(ctx, existsUserByEmailQuery, email)
+	var exists bool
+	err := ur.db.GetContext(ctx, &exists, existsUserByEmailQuery, email)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false
-		}
+		return false
 	}
 
-	return true
+	return exists
 }
 
 func (ur *UserRepository) GetByIDs(ctx context.Context, ids []string) (map[string]*domain.User, error) {

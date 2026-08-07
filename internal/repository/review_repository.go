@@ -76,7 +76,7 @@ func (rr *ReviewRepository) Create(ctx context.Context, review *domain.Review) e
 func (rr *ReviewRepository) GetByID(ctx context.Context, id string) (*domain.Review, error) {
 	var review domain.Review
 
-	err := rr.db.SelectContext(ctx, &review, getReviewByIDQuery, id)
+	err := rr.db.GetContext(ctx, &review, getReviewByIDQuery, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrReviewNotFound
