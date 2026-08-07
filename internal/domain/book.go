@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/bookshelf/monolith/internal/utils"
@@ -60,6 +61,18 @@ type CreateBookRequest struct {
 	Description   *string `json:"description,omitempty"`
 	ISBN          *string `json:"isbn,omitempty"`
 	PublishedYear *int32  `json:"published_year,omitempty"`
+}
+
+func (r CreateBookRequest) Validate() error {
+	if r.Title == "" {
+		return errors.New("title is required")
+	}
+
+	if r.Author == "" {
+		return errors.New("author is required")
+	}
+
+	return nil
 }
 
 type UpdateBookRequest struct {

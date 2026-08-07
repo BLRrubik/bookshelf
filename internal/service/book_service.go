@@ -29,12 +29,12 @@ func NewBookService(bookRepo *repository.BookRepository, userRepo *repository.Us
 }
 
 func (s *BookService) Create(ctx context.Context, userID string, req domain.CreateBookRequest) (*domain.BookResponse, error) {
-	if err := s.validateCreate(req); err != nil {
-		return nil, err
-	}
-
 	creator, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return nil, ErrUserNotFound
+		}
+
 		return nil, err
 	}
 
@@ -56,18 +56,6 @@ func (s *BookService) Create(ctx context.Context, userID string, req domain.Crea
 	bookResponse.Creator = &userSummary
 
 	return &bookResponse, nil
-}
-
-func (s *BookService) validateCreate(req domain.CreateBookRequest) error {
-	if len(req.Title) == 0 {
-		return ErrBookTitleEmpty
-	}
-
-	if len(req.Author) == 0 {
-		return ErrBookAuthorEmpty
-	}
-
-	return nil
 }
 
 func (s *BookService) GetByID(ctx context.Context, id string) (*domain.BookResponse, error) {
