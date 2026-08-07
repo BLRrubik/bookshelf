@@ -3,6 +3,8 @@ package domain
 import (
 	"database/sql"
 	"time"
+
+	"github.com/bookshelf/monolith/internal/utils"
 )
 
 type Book struct {
@@ -21,17 +23,18 @@ type Book struct {
 
 func (b *Book) ToResponse() BookResponse {
 	book := BookResponse{
-		ID:        b.ID,
-		Title:     b.Title,
-		Author:    b.Author,
-		CreatedBy: b.CreatedBy,
-		CreatedAt: b.CreatedAt,
-		UpdatedAt: b.UpdatedAt,
+		ID:            b.ID,
+		Title:         b.Title,
+		Author:        b.Author,
+		CreatedBy:     b.CreatedBy,
+		CreatedAt:     b.CreatedAt,
+		UpdatedAt:     b.UpdatedAt,
+		Description:   utils.NullToString(b.Description),
+		ISBN:          utils.NullToString(b.ISBN),
+		PublishedYear: utils.NullToInt32(b.PublishedYear),
+		AverageRating: utils.NullToFloat64(b.AverageRating),
+		ReviewsCount:  b.ReviewsCount,
 	}
-
-	_ = b.Description.Scan(&book.Description)
-	_ = b.ISBN.Scan(&book.ISBN)
-	_ = b.PublishedYear.Scan(&book.PublishedYear)
 
 	return book
 }
@@ -45,7 +48,7 @@ type BookResponse struct {
 	UpdatedAt     time.Time    `json:"updated_at"`
 	Description   *string      `json:"description"`
 	ISBN          *string      `json:"isbn"`
-	PublishedYear *int         `json:"published_year"`
+	PublishedYear *int32       `json:"published_year"`
 	AverageRating *float64     `json:"-"`
 	ReviewsCount  int          `json:"reviews_count"`
 	Creator       *UserSummary `json:"creator,omitempty"`
@@ -55,16 +58,16 @@ type CreateBookRequest struct {
 	Title         string  `json:"title"`
 	Author        string  `json:"author"`
 	Description   *string `json:"description,omitempty"`
-	ISBN          *int    `json:"isbn,omitempty"`
-	PublishedYear *int    `json:"published_year,omitempty"`
+	ISBN          *string `json:"isbn,omitempty"`
+	PublishedYear *int32  `json:"published_year,omitempty"`
 }
 
 type UpdateBookRequest struct {
 	Title         *string `json:"title,omitempty"`
 	Author        *string `json:"author,omitempty"`
 	Description   *string `json:"description,omitempty"`
-	ISBN          *int    `json:"isbn,omitempty"`
-	PublishedYear *int    `json:"published_year,omitempty"`
+	ISBN          *string `json:"isbn,omitempty"`
+	PublishedYear *int32  `json:"published_year,omitempty"`
 }
 
 type BookFilter struct {
@@ -73,6 +76,24 @@ type BookFilter struct {
 	Order  string `json:"order"`
 	Page   int    `json:"page"`
 	Limit  int    `json:"limit"`
+}
+
+func (b *BookFilter) Normalize() {
+	if b.Page <= 0 {
+		b.Page = 1
+	}
+
+	if b.Limit <= 0 {
+		b.Limit = 10
+	}
+
+	if b.Sort != "" {
+		b.Sort = "title"
+	}
+
+	if b.Order != "asc" && b.Order != "desc" {
+		b.Order = "desc"
+	}
 }
 
 type BookListResponse struct {
