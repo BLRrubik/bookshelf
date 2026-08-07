@@ -132,7 +132,7 @@ func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*doma
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
-		return nil, ErrInvalidPassword
+		return nil, ErrInvalidCredentials
 	}
 
 	token, err := s.generateToken(user.ID)
@@ -166,7 +166,7 @@ func (s *UserService) Update(ctx context.Context, userID string, req domain.Upda
 		return nil, ErrInvalidUsername
 	}
 
-	checkUser, err := s.repo.GetByUsername(ctx, userID)
+	checkUser, err := s.repo.GetByUsername(ctx, req.Username)
 	switch {
 	case errors.Is(err, repository.ErrUserNotFound):
 	case err != nil:
