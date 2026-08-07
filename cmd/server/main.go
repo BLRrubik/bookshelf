@@ -27,7 +27,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
 
-	r.Get("/health", handler.HealthHandler)
+	r.Get("/health", handler.Health)
 
 	http.ListenAndServe(":"+cfg.Port, r)
 }

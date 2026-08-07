@@ -1,10 +1,10 @@
 package domain
 
 type ErrorResponse struct {
-	Code      int    `json:"code"`
-	Message   string `json:"message"`
-	Details   string `json:"details"`
-	RequestID string `json:"request_id"`
+	Code      int           `json:"code"`
+	Message   string        `json:"message"`
+	Details   []ErrorDetail `json:"details"`
+	RequestID string        `json:"request_id"`
 }
 
 type ErrorDetail struct {
