@@ -19,6 +19,7 @@ var (
 	ErrInvalidPassword    = errors.New("invalid password")
 	ErrInvalidUsername    = errors.New("invalid username")
 	ErrInvalidEmail       = errors.New("invalid email")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 type UserService struct {
