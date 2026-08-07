@@ -172,7 +172,7 @@ func (s *UserService) Update(ctx context.Context, userID string, req domain.Upda
 	case err != nil:
 		return nil, err
 	case checkUser.ID != userID:
-		return nil, repository.ErrUserAlreadyExists
+		return nil, ErrUsernameExists
 	}
 
 	user, err := s.repo.GetByID(ctx, userID)
