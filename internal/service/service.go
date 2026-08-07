@@ -1,6 +1,8 @@
 package service
 
-import "github.com/bookshelf/monolith/internal/repository"
+import (
+	"github.com/bookshelf/monolith/internal/repository"
+)
 
 type Service struct {
 	UserService *UserService
