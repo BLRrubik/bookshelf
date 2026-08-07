@@ -62,7 +62,7 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 		User:        user.ToPublic(),
 		AccessToken: token,
 		TokenType:   "Bearer",
-		ExpiresIn:   0,
+		ExpiresIn:   int(time.Now().Add(time.Hour).Unix()),
 	}, nil
 }
 
@@ -119,4 +119,74 @@ func (s *UserService) ValidateToken(tokenString string) (string, error) {
 	}
 
 	return "", nil
+}
+
+func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*domain.AuthResponse, error) {
+	user, err := s.repo.GetByEmail(ctx, req.Email)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return nil, ErrInvalidCredentials
+		}
+
+		return nil, err
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return nil, ErrInvalidPassword
+	}
+
+	token, err := s.generateToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.AuthResponse{
+		AccessToken: token,
+		TokenType:   "Bearer",
+		ExpiresIn:   int(time.Now().Add(time.Hour).Unix()),
+		User:        user.ToPublic(),
+	}, nil
+}
+
+func (s *UserService) GetByID(ctx context.Context, userID string) (*domain.User, error) {
+	user, err := s.repo.GetByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return nil, repository.ErrUserNotFound
+		}
+
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *UserService) Update(ctx context.Context, userID string, req domain.UpdateUserRequest) (*domain.User, error) {
+	if len(req.Username) < 3 {
+		return nil, ErrInvalidUsername
+	}
+
+	checkUser, err := s.repo.GetByUsername(ctx, userID)
+	switch {
+	case errors.Is(err, repository.ErrUserNotFound):
+	case err != nil:
+		return nil, err
+	case checkUser.ID != userID:
+		return nil, repository.ErrUserAlreadyExists
+	case checkUser.ID == userID:
+		return checkUser, nil
+	}
+
+	user, err := s.repo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Username = req.Username
+
+	if err = s.repo.Update(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
