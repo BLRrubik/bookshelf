@@ -61,7 +61,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	resp, err := h.services.UserService.Login(r.Context(), req)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
-			writeError(w, r, http.StatusBadRequest, "invalid credentials")
+			writeError(w, r, http.StatusUnauthorized, "invalid credentials")
 
 			return
 		}
