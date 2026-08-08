@@ -104,22 +104,23 @@ func (s *UserService) generateToken(userID string) (string, error) {
 }
 
 func (s *UserService) ValidateToken(tokenString string) (string, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	claims := &jwt.RegisteredClaims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-
-		return s.jwtSecret, nil
+		return []byte(s.jwtSecret), nil
 	})
 	if err != nil {
 		return "", err
 	}
 
-	if claims, ok := token.Claims.(jwt.RegisteredClaims); ok && token.Valid {
-		return claims.Subject, nil
+	if !token.Valid {
+		return "", fmt.Errorf("invalid token")
 	}
 
-	return "", nil
+	return claims.Subject, nil
 }
 
 func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*domain.AuthResponse, error) {
